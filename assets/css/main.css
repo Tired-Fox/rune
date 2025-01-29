@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+html {
+  @variant dark {
+    @apply bg-zinc-900 text-slate-200
+  }
+}
