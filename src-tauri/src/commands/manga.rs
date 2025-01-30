@@ -1,6 +1,6 @@
 use base64::Engine;
 use futures_util::StreamExt;
-use manrex::{model::{cover::CoverSize, manga::{Manga, MangaFilter}, Paginated}, Client};
+use manrex::{model::{cover::CoverSize, manga::{Manga, MangaFilter, MangaInclude}, Paginated}, Client, MangaId};
 use tauri::State;
 use tokio::sync::Mutex;
 
@@ -19,7 +19,7 @@ pub async fn list_manga(client: State<'_, Mutex<Option<Client>>>, filters: Optio
 }
 
 #[tauri::command]
-pub async fn get_cover_image(manga: Manga, size: Option<CoverSize>) -> Result<(Option<String>, String), tauri::Error> {
+pub async fn get_cover_art(manga: Manga, size: Option<CoverSize>) -> Result<(Option<String>, String), tauri::Error> {
     let (mime, mut stream) = manga
         .get_cover_art(size)
         .map_err(anyhow::Error::new)?
@@ -33,4 +33,18 @@ pub async fn get_cover_image(manga: Manga, size: Option<CoverSize>) -> Result<(O
     }
 
     Ok((mime, base64::engine::general_purpose::STANDARD.encode(&bytes)))
+}
+
+#[tauri::command]
+pub async fn get_manga(client: State<'_, Mutex<Option<Client>>>, id: MangaId, includes: Option<Vec<MangaInclude>>) -> Result<Manga, tauri::Error> {
+  let mut client = client.lock().await;
+  match client.as_mut() {
+      None => Err(tauri::Error::Anyhow(anyhow::anyhow!("client is not available"))),
+      Some(client) => {
+        Ok(client
+          .get_manga(id, includes)
+          .await
+          .map_err(anyhow::Error::new)?)
+      }
+  }
 }

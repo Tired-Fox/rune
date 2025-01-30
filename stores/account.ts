@@ -20,7 +20,6 @@ export const useAccountStore = defineStore('account', () => {
   async function fetchAccount() {
     return invoke<Account>('fetch_account', {})
       .then(response => {
-        console.log(response);
         account.value = response;
       })
       .catch(response => {
@@ -31,7 +30,6 @@ export const useAccountStore = defineStore('account', () => {
   onMounted(() => {
     invoke<Account>('fetch_account', {})
       .then(response => {
-        console.log(response);
         account.value = response;
       })
       .catch(response => {

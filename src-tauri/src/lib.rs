@@ -47,6 +47,8 @@ fn load_account() -> Result<(Account, Option<Client>), manrex::Error> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+  //setup();
+
   tauri::Builder::default()
     .setup(|app| {
       let (account, client) = load_account().unwrap_or_default();
@@ -68,8 +70,26 @@ pub fn run() {
         commands::account::logout,
 
         commands::manga::list_manga,
-        commands::manga::get_cover_image,
+        commands::manga::get_cover_art,
+        commands::manga::get_manga,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
+
+  //cleanup()
+}
+
+fn setup() {
+  let path = std::env::temp_dir().join(PNAME);
+  if !path.exists() {
+    std::fs::create_dir_all(path).expect("failed to setup temporary directory");
+  }
+}
+
+fn cleanup() {
+  println!("Cleanup");
+  let path = std::env::temp_dir().join(PNAME);
+  if path.exists() {
+    std::fs::remove_dir_all(path).expect("failed to remove temporary directory")
+  }
 }
