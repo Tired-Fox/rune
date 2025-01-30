@@ -14,7 +14,7 @@ pub async fn login(client: State<'_, Mutex<Option<Client>>>, creds: Creds, usern
   let mut client = client.lock().await;
   if client.is_none() {
     println!("INIT CLIENT");
-    client.replace(Client::new(OAuth::new(creds.decode())));
+    client.replace(Client::new(OAuth::new_with_cache(creds.decode(), dirs::cache_dir().unwrap().join(PNAME))));
   }
 
   let c = client.as_mut().unwrap();

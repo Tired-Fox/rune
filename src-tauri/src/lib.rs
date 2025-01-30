@@ -6,14 +6,14 @@ use tokio::sync::Mutex;
 pub mod commands;
 pub mod model;
 
-pub static PNAME: &str = "rune-mm";
+pub static PNAME: &str = "com.rune.manga";
 
 fn load_account() -> Result<(Account, Option<Client>), manrex::Error> {
   let path = dirs::cache_dir().unwrap().join(PNAME).join("client.json");
   match Credentials::from_env() {
     // Prioritize environment variables for credentials
     Ok(creds) => {
-      let client = Client::new(OAuth::new(creds.clone()));
+      let client = Client::new(OAuth::new_with_cache(creds.clone(), dirs::cache_dir().unwrap().join(PNAME)));
       Ok((
         Account {
           logged_in: client.oauth().logged_in(),
@@ -30,7 +30,7 @@ fn load_account() -> Result<(Account, Option<Client>), manrex::Error> {
         let uclient = serde_json::from_str::<model::account::Creds>(&content)?;
 
         let creds = uclient.clone().decode();
-        let client = Client::new(OAuth::new(creds));
+        let client = Client::new(OAuth::new_with_cache(creds, dirs::cache_dir().unwrap().join(PNAME)));
         Ok((
           Account {
             logged_in: client.oauth().logged_in(),
