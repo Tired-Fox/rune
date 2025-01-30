@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 html {
   @variant dark {
     @apply bg-zinc-900 text-slate-200

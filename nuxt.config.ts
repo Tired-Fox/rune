@@ -10,5 +10,17 @@ export default defineNuxtConfig({
       tailwindcss()
     ]
   },
-  modules: ["@nuxtjs/color-mode"]
+
+  modules: ["@nuxtjs/color-mode", "@vesp/nuxt-fontawesome", "@pinia/nuxt"],
+  colorMode: {
+    classSuffix: '',
+  },
+  fontawesome: {
+    component: 'fa',
+    icons: {
+      solid: ["sun", "moon", "eye", "eye-slash"],
+      regular: [],
+      brands: [],
+    }
+  }
 })
