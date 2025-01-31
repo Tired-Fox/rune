@@ -7,3 +7,16 @@ html {
     @apply bg-zinc-900 text-slate-200
   }
 }
+
+::-webkit-scrollbar {
+    /* Customize the scrollbar width */
+}
+
+::-webkit-scrollbar-track {
+  @apply !bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    /* Customize the scrollbar thumb */
+  @apply bg-green-500
+}

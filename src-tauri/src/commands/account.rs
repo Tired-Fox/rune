@@ -13,7 +13,6 @@ pub async fn fetch_account(account: State<'_, Mutex<Account>>) -> Result<Account
 pub async fn login(client: State<'_, Mutex<Option<Client>>>, creds: Creds, username: String, password: String) -> Result<(), tauri::Error> {
   let mut client = client.lock().await;
   if client.is_none() {
-    println!("INIT CLIENT");
     client.replace(Client::new(OAuth::new_with_cache(creds.decode(), dirs::cache_dir().unwrap().join(PNAME))));
   }
 
@@ -23,7 +22,6 @@ pub async fn login(client: State<'_, Mutex<Option<Client>>>, creds: Creds, usern
   let credentials = creds.decode();
 
   if oauth.credentials() != &credentials {
-    println!("REPLACE CREDENTIALS");
     std::fs::write(dirs::cache_dir().unwrap().join(PNAME).join("client.json"), serde_json::to_string(&creds)?)?;
     oauth.set_credentials(credentials);
   }

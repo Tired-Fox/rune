@@ -4,6 +4,12 @@
       class="w-full flex justify-between px-6 py-4"
     >
       <div>
+        <nuxt-link
+          class="px-2 py-1 border rounded-md"
+          to="/"
+        >
+          Home
+        </nuxt-link>
       </div>
       <div>
         <button
