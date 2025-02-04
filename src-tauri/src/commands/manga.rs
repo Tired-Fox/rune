@@ -1,15 +1,18 @@
+use std::collections::BTreeMap;
+
 use manrex::{
     model::{
         cover::CoverSize,
-        manga::{Manga, MangaFilter, MangaInclude},
+        manga::{Manga, MangaFilter, MangaInclude, Tag, Volume},
         Paginated,
-    },
-    Client, MangaId,
+    }, Client, GroupId, MangaId, TagId
 };
 use tauri::State;
 use tokio::{fs::OpenOptions, sync::Mutex};
 
 use crate::PNAME;
+
+use super::{rm_cache, CacheTarget};
 
 #[tauri::command]
 pub async fn list_manga(
@@ -29,13 +32,20 @@ pub async fn list_manga(
                 .await
                 .map_err(anyhow::Error::new)?;
 
-            let ids = response.data.iter().map(|v| v.id.as_ref().to_string()).collect::<Vec<_>>();
-            for manga in std::fs::read_dir(&base)?.flatten() {
-                let id = manga.path().file_stem().unwrap().to_str().unwrap().to_string();
-                if !ids.contains(&id) {
-                  let _ = std::fs::remove_dir_all(manga.path());
-                }
-            }
+            let ids = response.data
+                .iter()
+                .map(|v| v.id.as_ref().to_string())
+                .collect::<Vec<_>>();
+
+            rm_cache(
+                std::fs::read_dir(&base)?
+                    .flatten()
+                    .filter_map(|m| {
+                        let id = m.path().file_stem().unwrap().to_str().unwrap().to_string();
+                        (!ids.contains(&id)).then_some(CacheTarget::Id(id))
+                    })
+                    .collect()
+            )?;
 
             Ok(response)
         }
@@ -99,6 +109,41 @@ pub async fn get_manga(
         ))),
         Some(client) => Ok(client
             .get_manga(id, includes)
+            .await
+            .map_err(anyhow::Error::new)?),
+    }
+}
+
+#[tauri::command]
+pub async fn get_tags(
+    client: State<'_, Mutex<Option<Client>>>,
+    tags: Vec<TagId>,
+) -> Result<Vec<Tag>, tauri::Error> {
+    let mut client = client.lock().await;
+    match client.as_mut() {
+        None => Err(tauri::Error::Anyhow(anyhow::anyhow!(
+            "client is not available"
+        ))),
+        Some(client) => {
+            Ok(crate::cache::tag::get_tags(client, Some(tags)).await?)
+        },
+    }
+}
+
+#[tauri::command]
+pub async fn get_volumes_and_chapters(
+    client: State<'_, Mutex<Option<Client>>>,
+    id: MangaId,
+    translated_language: Option<Vec<String>>,
+    group: Option<Vec<GroupId>>,
+) -> Result<BTreeMap<String, Volume>, tauri::Error> {
+    let mut client = client.lock().await;
+    match client.as_mut() {
+        None => Err(tauri::Error::Anyhow(anyhow::anyhow!(
+            "client is not available"
+        ))),
+        Some(client) => Ok(client
+            .get_manga_volumes_and_chapters(id, translated_language, group)
             .await
             .map_err(anyhow::Error::new)?),
     }

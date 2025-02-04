@@ -1,63 +1,48 @@
 <template>
-  <div class="w-full px-6 flex justify-center grid grid-cols-5 gap-y-4">
-    <template v-if="Object.keys(manga).length">
-      <div
-        v-for="({ details, cover }, id) in manga"
-        :key="id"
-        class="flex flex-col gap-1 w-40 mx-auto"
+  <div class="w-full px-6">
+    <template v-if="manga?.data?.length">
+      <UCarousel
+        v-slot="{ item: manga }"
+        :items="manga.data"
+        :ui="{ indicators: { wrapper: '-bottom-4' }}"
+        arrows
+        indicators
       >
-        <div
-          class="dark:bg-zinc-700 w-40 h-auto aspect-2/3 overflow-hidden rounded"
-        >
-          <img
-            v-if="cover"
-            :src="cover"
-            class="aspect-2/3 h-auto w-full"
-          />
-        </div>
         <nuxt-link
-          :to="`manga/${id}`"
+          class="px-2 py-1 w-[15rem] relative flex flex-col items-start"
+          :to="`/manga/${manga.id}`"
         >
-          {{ details.attributes.title.en }}
+          <div
+            class="dark:bg-zinc-700 w-[14rem] aspect-[2/3] h-auto overflow-hidden rounded flex justify-center items-center"
+          >
+            <img
+              v-if="covers[manga.id]"
+              :src="covers[manga.id]"
+              class="aspect-[2/3] h-auto w-full"
+              draggable="false"
+            />
+            <USkeleton v-else class="aspect-[2/3] h-auto w-full" />
+          </div>
+          <span class="line-clamp-3 text-ellipsis" :title="manga?.attributes.title.en">{{ manga?.attributes.title.en }}</span>
         </nuxt-link>
-      </div>
-    </template>
-    <template v-else>
-      <div
-        v-for="index in 10"
-        :key="index"
-        class="flex flex-col gap-1 w-40 mx-auto"
-      >
-        <div
-          class="dark:bg-zinc-700 w-40 h-auto aspect-2/3 overflow-hidden rounded"
-        >
-        </div>
-      </div>
+      </UCarousel>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { invoke, convertFileSrc } from '@tauri-apps/api/core';
+import type { Manga, Paginated, Volume } from '~/types';
 
-const manga: Ref<{ [k: string]: { details: object, cover: string|null }}> = ref({});
+const manga = ref<Paginated<Manga>>({} as any);
+const covers = ref<{[k: string]: string}>({});
 
 onMounted(async () => {
-  await invoke('list_manga', { filters: { includes: ["cover_art"] }})
-    .then(response => {
-      for (const m of response.data) {
-        manga.value[m.id] = { details: m };
-      }
-    });
+  await invoke<Paginated<Manga>>('list_manga', { filters: { includes: ["cover_art"], content_rating: ["safe"] }})
+    .then(out => manga.value = out);
 
-  for (const [id, m] of Object.entries(manga.value)) {
-    invoke<string>('get_cover_art', { manga: m.details, size: "large" })
-      .then(cover => {
-        if (!!manga.value[id]) {
-          manga.value[id].cover = convertFileSrc(cover);
-        }
-      })
-        .catch(error => console.log(error));
+  for (const m of manga.value.data) {
+    covers.value[m.id] = convertFileSrc(await invoke<string>('get_cover_art', { manga: m, size: "large" }));
   }
-})
+});
 </script>

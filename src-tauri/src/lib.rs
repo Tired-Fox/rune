@@ -5,6 +5,7 @@ use tokio::sync::Mutex;
 
 pub mod commands;
 pub mod model;
+pub mod cache;
 
 pub static PNAME: &str = "com.rune.manga";
 
@@ -72,6 +73,12 @@ pub fn run() {
         commands::manga::list_manga,
         commands::manga::get_cover_art,
         commands::manga::get_manga,
+        commands::manga::get_tags,
+        commands::manga::get_volumes_and_chapters,
+
+        commands::chapter::get_chapters,
+        commands::chapter::get_chapter,
+        commands::chapter::get_pages,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
