@@ -1,3 +1,5 @@
+use std::{cmp::Ordering, sync::Arc};
+
 use manrex::{auth::{Credentials, OAuth}, Client};
 use model::account::Account;
 use tauri::Manager;
@@ -6,8 +8,10 @@ use tokio::sync::Mutex;
 pub mod commands;
 pub mod model;
 pub mod cache;
+pub mod task;
 
 pub static PNAME: &str = "com.rune.manga";
+pub type SharedClient = Arc<Mutex<Option<manrex::Client>>>;
 
 fn load_account() -> Result<(Account, Option<Client>), manrex::Error> {
   let path = dirs::cache_dir().unwrap().join(PNAME).join("client.json");
@@ -54,7 +58,7 @@ pub fn run() {
     .setup(|app| {
       let (account, client) = load_account().unwrap_or_default();
       app.manage(Mutex::new(account));
-      app.manage(Mutex::new(client));
+      app.manage(Arc::new(Mutex::new(client)));
 
       if cfg!(debug_assertions) {
         app.handle().plugin(
@@ -66,6 +70,10 @@ pub fn run() {
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![
+        task::cancel_task,
+
+        commands::remove_cache,
+
         commands::account::fetch_account,
         commands::account::login,
         commands::account::logout,
@@ -79,6 +87,9 @@ pub fn run() {
         commands::chapter::get_chapters,
         commands::chapter::get_chapter,
         commands::chapter::get_pages,
+
+        commands::list::get_list,
+        commands::list::get_lists,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
@@ -99,4 +110,41 @@ fn cleanup() {
   if path.exists() {
     std::fs::remove_dir_all(path).expect("failed to remove temporary directory")
   }
+}
+
+pub(crate) fn natural_compare(a: impl AsRef<str>, b: impl AsRef<str>) -> Ordering {
+    let a = a.as_ref();
+    let b = b.as_ref();
+    
+    let mut left = a.chars().peekable();
+    let mut right = b.chars().peekable();
+
+    while let (Some(l), Some(r)) = (left.next(), right.next()) {
+        if l.is_ascii_digit() && r.is_ascii_digit() {
+            let mut first = String::from(l);
+            let mut second = String::from(r);
+            while let Some(l) = left.peek() {
+                if !l.is_ascii_digit() { break; }
+                first.push(left.next().unwrap());
+            }
+            while let Some(r) = right.peek() {
+                if !r.is_ascii_digit() { break; }
+                second.push(right.next().unwrap());
+            }
+
+            let first = first.as_str().parse::<usize>().unwrap();
+            let second = second.as_str().parse::<usize>().unwrap();
+            let order = first.cmp(&second);
+            if order != Ordering::Equal { return order; };
+        } else {
+            let order = l.cmp(&r);
+            if order != Ordering::Equal { return order; };
+        }
+    }
+
+    match (left.next(), right.next()) {
+        (Some(_), None) => Ordering::Greater,
+        (None, Some(_)) => Ordering::Less,
+        _ => Ordering::Equal,
+    }
 }

@@ -147,7 +147,7 @@ async function startReading() {
   }
 
   const response = await invoke<Paginated<Chapter>>("get_chapters", { filters });
-  const result = response.data.sort((a, b) => ('' + a.attributes.translatedLanguage).localeCompare('' + b.attributes.translatedLanguage));
+  const result = response.data.sort((a, b) => ('' + a.attributes.translatedLanguage).localeCompare('' + b.attributes.translatedLanguage, undefined, { numeric: true, sensitivity: 'base' }));
   if (result.length === 1) {
       navigateTo(`/manga/${manga.value.id}/${result[0].id}`);
       return;
@@ -164,11 +164,11 @@ onMounted(async () => {
 
   invoke<Paginated<Chapter>>("get_chapters", { filters: { manga: manga.value.id, translated_language: ["en"], order: { chapter: 'asc' } } })
     .then(response => {
-        response.data = response.data.sort((a, b) => ('' + a.attributes.chapter).localeCompare('' + b.attributes.chapter));
+        response.data = response.data.sort((a, b) => ('' + a.attributes.chapter).localeCompare('' + b.attributes.chapter, undefined, { numeric: true, sensitivity: 'base' }));
         chapters.value = response
     });
 
   invoke<string>("get_cover_art", { manga: manga.value, size: 'large' })
     .then(response => cover.value = convertFileSrc(response));
-})
+});
 </script>

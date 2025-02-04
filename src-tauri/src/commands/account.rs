@@ -2,7 +2,7 @@ use manrex::{auth::OAuth, Client};
 use tauri::State;
 use tokio::sync::Mutex;
 
-use crate::{model::account::{Account, Creds}, PNAME};
+use crate::{model::account::{Account, Creds}, SharedClient, PNAME};
 
 #[tauri::command]
 pub async fn fetch_account(account: State<'_, Mutex<Account>>) -> Result<Account, tauri::Error> {
@@ -10,7 +10,7 @@ pub async fn fetch_account(account: State<'_, Mutex<Account>>) -> Result<Account
 }
 
 #[tauri::command]
-pub async fn login(client: State<'_, Mutex<Option<Client>>>, creds: Creds, username: String, password: String) -> Result<(), tauri::Error> {
+pub async fn login(client: State<'_, SharedClient>, creds: Creds, username: String, password: String) -> Result<(), tauri::Error> {
   let mut client = client.lock().await;
   if client.is_none() {
     client.replace(Client::new(OAuth::new_with_cache(creds.decode(), dirs::cache_dir().unwrap().join(PNAME))));
@@ -36,7 +36,7 @@ pub async fn login(client: State<'_, Mutex<Option<Client>>>, creds: Creds, usern
 }
 
 #[tauri::command]
-pub async fn logout(client: State<'_, Mutex<Option<Client>>>, account: State<'_, Mutex<Account>>) -> Result<(), tauri::Error> {
+pub async fn logout(client: State<'_, SharedClient>, account: State<'_, Mutex<Account>>) -> Result<(), tauri::Error> {
   account.lock().await.logged_in = false;
   if let Some(client) = client.lock().await.as_mut() {
     client.oauth().logout().map_err(anyhow::Error::new)?;

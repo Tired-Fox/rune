@@ -8,13 +8,16 @@ use crate::PNAME;
 pub mod account;
 pub mod manga;
 pub mod chapter;
+pub mod list;
 
 #[derive(Deserialize)]
+#[serde(untagged)]
 pub enum CacheTarget {
     Id(String),
     Specific {
         manga: MangaId,
 
+        #[serde(default)]
         cover: bool,
         #[serde(default)]
         chapters: HashSet<String>,

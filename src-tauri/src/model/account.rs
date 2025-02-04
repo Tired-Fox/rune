@@ -1,4 +1,4 @@
-use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
+use base64::{Engine, engine::general_purpose::STANDARD};
 use manrex::auth::Credentials;
 use serde::{Deserialize, Serialize};
 
@@ -14,14 +14,14 @@ impl Creds {
   pub fn decode(&self) -> Credentials {
     Credentials::new(
       self.id.clone().unwrap_or_default(),
-      String::from_utf8_lossy(&URL_SAFE_NO_PAD.decode(self.secret.clone().unwrap_or_default()).unwrap())
+      String::from_utf8_lossy(&STANDARD.decode(self.secret.clone().unwrap_or_default()).unwrap())
     )
   }
 
   pub fn encode(creds: Credentials) -> Self {
     Self {
       id: Some(creds.id().into()),
-      secret: Some(URL_SAFE_NO_PAD.encode(creds.secret())),
+      secret: Some(STANDARD.encode(creds.secret())),
     }
   }
 }

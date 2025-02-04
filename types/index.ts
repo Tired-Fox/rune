@@ -5,6 +5,10 @@ export type Paginated<T> = {
   data: T[]
 };
 
+export type Visibility =
+    'private'
+    | 'public'
+
 export type Demographic =
    'shounen'
    | 'shoujo'
@@ -135,4 +139,12 @@ export type Volume = {
     volume: string,
     count: number,
     chapters: {[k: string]: VolumeChapter},
+};
+
+export type List = {
+    id: string
+    version: number,
+    visibility: Visibility,
+    user?: string,
+    manga: string[]
 };

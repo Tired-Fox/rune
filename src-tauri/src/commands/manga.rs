@@ -5,20 +5,20 @@ use manrex::{
         cover::CoverSize,
         manga::{Manga, MangaFilter, MangaInclude, Tag, Volume},
         Paginated,
-    }, Client, GroupId, MangaId, TagId
+    }, GroupId, MangaId, TagId
 };
 use tauri::State;
-use tokio::{fs::OpenOptions, sync::Mutex};
+use tokio::fs::OpenOptions;
 
-use crate::PNAME;
+use crate::{SharedClient, PNAME};
 
 use super::{rm_cache, CacheTarget};
 
 #[tauri::command]
 pub async fn list_manga(
-    client: State<'_, Mutex<Option<Client>>>,
+    client: State<'_, SharedClient>,
     filters: Option<MangaFilter>,
-) -> Result<Paginated<Vec<Manga>>, tauri::Error> {
+) -> Result<Paginated<Manga>, tauri::Error> {
     let base = std::env::temp_dir().join(PNAME);
 
     let mut client = client.lock().await;
@@ -98,7 +98,7 @@ pub async fn get_cover_art(
 
 #[tauri::command]
 pub async fn get_manga(
-    client: State<'_, Mutex<Option<Client>>>,
+    client: State<'_, SharedClient>,
     id: MangaId,
     includes: Option<Vec<MangaInclude>>,
 ) -> Result<Manga, tauri::Error> {
@@ -116,7 +116,7 @@ pub async fn get_manga(
 
 #[tauri::command]
 pub async fn get_tags(
-    client: State<'_, Mutex<Option<Client>>>,
+    client: State<'_, SharedClient>,
     tags: Vec<TagId>,
 ) -> Result<Vec<Tag>, tauri::Error> {
     let mut client = client.lock().await;
@@ -132,7 +132,7 @@ pub async fn get_tags(
 
 #[tauri::command]
 pub async fn get_volumes_and_chapters(
-    client: State<'_, Mutex<Option<Client>>>,
+    client: State<'_, SharedClient>,
     id: MangaId,
     translated_language: Option<Vec<String>>,
     group: Option<Vec<GroupId>>,

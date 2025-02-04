@@ -36,5 +36,4 @@
 const theme = useColorMode();
 
 const accountStore = useAccountStore();
-const { account } = storeToRefs(accountStore);
 </script>
