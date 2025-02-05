@@ -12,9 +12,9 @@
           arrows
           indicators
         >
-          <template v-if="typeof manga === 'string'">
-            <USkeleton class="w-[14rem] aspect-[2/3] h-auto rounded" />
-          </template>
+          <div v-if="typeof manga === 'string'" class="px-2 py-1">
+            <USkeleton class="w-[15rem] aspect-[2/3] h-auto rounded" />
+          </div>
           <nuxt-link
             v-else
             class="px-2 py-1 w-[15rem] relative flex flex-col items-start"

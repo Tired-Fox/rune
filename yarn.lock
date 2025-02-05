@@ -1691,6 +1691,14 @@
     "@vueuse/shared" "12.5.0"
     vue "^3.5.13"
 
+"@vueuse/math@^12.5.0":
+  version "12.5.0"
+  resolved "https://registry.yarnpkg.com/@vueuse/math/-/math-12.5.0.tgz#59b26f881082d03b702a2b3f9a1cda4814d05134"
+  integrity sha512-7Mtq4ascSwNk8GVdHywAhMkjxR77+BJUxsjygTI5CwnwnRsTVC5w04QTL9AKfC7ivVua2+Vf2BgP8TR2Xmy4wg==
+  dependencies:
+    "@vueuse/shared" "12.5.0"
+    vue "^3.5.13"
+
 "@vueuse/metadata@12.5.0":
   version "12.5.0"
   resolved "https://registry.npmjs.org/@vueuse/metadata/-/metadata-12.5.0.tgz"
