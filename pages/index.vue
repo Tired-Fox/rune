@@ -23,13 +23,11 @@
             <div
               class="dark:bg-zinc-700 w-[14rem] aspect-[2/3] h-auto overflow-hidden rounded flex justify-center items-center"
             >
-              <img
-                v-if="covers[manga.id]"
-                :src="covers[manga.id]"
+              <Cover
                 class="aspect-[2/3] h-auto w-full"
+                :source="{ mangaId: manga.id, fileName: manga.relationships.find((r: Relationship) => r.type === 'cover_art')?.attributes?.fileName }"
                 draggable="false"
               />
-              <USkeleton v-else class="aspect-[2/3] h-auto w-full" />
             </div>
             <span class="line-clamp-3 text-ellipsis" :title="manga?.attributes.title.en">{{ manga?.attributes.title.en }}</span>
           </nuxt-link>
@@ -51,42 +49,30 @@ const ids = [
   "5c5e6e39-0b4b-413e-be59-27b1ba03d1b9",
 ]
 
-import { invoke, convertFileSrc } from '@tauri-apps/api/core';
-import type { Manga, Paginated, List } from '~/types';
+import { invoke } from '@tauri-apps/api/core';
+import type { Manga, Paginated, CustomList, List, Relationship } from '~/types';
 
 const lists = ref<{ [name: string]: Pick<List, Exclude<keyof List, 'manga'>> & { manga: Manga[] | string[] } }>({});
-const covers = ref<{[k: string]: string}>({});
 
-onMounted(async () => {
-  let custom_lists = await invoke<{ [name: string]: List }>('get_lists', { lists: ids });
-  console.log(custom_lists);
-  lists.value = custom_lists;
-
-  let manga_ids: string[] = [];
-  for (const list of Object.values(custom_lists)) {
-    for (const id of list.manga) {
-      if (!manga_ids.includes(id)) manga_ids.push(id);
-    }
-  }
-
-  // PERF: Ensure all items are retrieved. Otherwise it should paginate.
-  const manga = await invoke<Paginated<Manga>>('list_manga', { filters: {
-      limit: Math.min(manga_ids.length, 100),
-      ids: manga_ids,
-      includes: ["cover_art"]
-  }});
-
-  manga.data.forEach(m => {
-    invoke<string>('get_cover_art', { manga: m, size: 'large' })
-      .then(cover => covers.value[m.id] = convertFileSrc(cover))
-      .catch(err => console.error(err));
-  })
-
-  for (const name of Object.keys(custom_lists)) {
-    lists.value[name] = {
-      ...custom_lists[name],
-      manga: manga.data.filter(m => custom_lists[name].manga.includes(m.id)),
-    };
+onMounted(() => {
+  for (const id of ids) {
+    invoke<CustomList>('get_list', { id })
+      .then(customList => {
+        const name = customList.attributes.name;
+        lists.value[name] = {
+          id: customList.id,
+          version: customList.attributes.version,
+          visibility: customList.attributes.visibility,
+          manga: customList.relationships.filter((r: Relationship) => r.type === 'manga').map((r: Relationship) => r.id),
+          user: customList.relationships.find((r: Relationship) => r.type === 'user')?.id,
+        };
+        invoke<Paginated<Manga>>('list_manga', { filters: {
+            limit: lists.value[name].manga.length,
+            ids: lists.value[name].manga,
+            includes: ["cover_art"]
+        }})
+          .then(manga => lists.value[name].manga = manga.data);
+      });
   }
 });
 </script>

@@ -57,43 +57,11 @@ pub async fn get_cover_art(
     manga: Manga,
     size: Option<CoverSize>,
 ) -> Result<String, tauri::Error> {
-    let id = manga.id.as_ref();
-    let base = std::env::temp_dir().join(PNAME);
-
-
-    let base_name = match size {
-        Some(size) => format!("cover-{size}.png"),
-        None => "cover.jpg".to_string(),
-    };
-
-    let cover_path = base.join(id).join(&base_name);
-    if cover_path.exists() {
-        println!("HIT [COVER-ART]");
-        return Ok(cover_path.display().to_string())
-    }
-
-    if !base.join(id).exists() {
-        std::fs::create_dir_all(base.join(id))?;
-    }
-
     let image = manga
         .get_cover_art(size)
         .map_err(anyhow::Error::new)?;
-    let stream = image
-        .fetch()
-        .await
-        .map_err(anyhow::Error::new)?;
 
-    let mut file = OpenOptions::new()
-        .create(true)
-        .truncate(true)
-        .write(true)
-        .open(&cover_path)
-        .await?;
-
-    stream.stream_to(&mut file).await.map_err(anyhow::Error::new)?;
-
-    Ok(cover_path.display().to_string())
+    Ok(image.link().to_string())
 }
 
 #[tauri::command]

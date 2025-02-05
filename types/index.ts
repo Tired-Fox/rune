@@ -148,3 +148,15 @@ export type List = {
     user?: string,
     manga: string[]
 };
+
+export type CustomListAttributes = {
+    name: string,
+    visibility: Visibility,
+    version: number,
+}
+
+export type CustomList = {
+    id: string
+    attributes: CustomListAttributes
+    relationships: Relationship[]
+};

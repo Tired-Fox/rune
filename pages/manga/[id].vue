@@ -2,7 +2,11 @@
   <div class="px-4">
     <div class="mx-6 flex gap-4 h-100">
       <div class="flex-none aspect-[2/3] w-[20rem] h-full dark:bg-zinc-800 rounded-md overflow-hidden">
-        <img v-if="cover" :src="cover" class="aspect-[2/3] h-auto w-full" />
+        <Cover
+          v-if="manga"
+          class="aspect-[2/3] h-auto w-full"
+          :source="{ mangaId: manga.id, fileName: manga.relationships.find(r => r.type === 'cover_art')?.attributes?.fileName }"
+        />
         <USkeleton v-else class="aspect-[2/3] w-full h-auto" />
       </div>
 
@@ -143,8 +147,5 @@ onMounted(async () => {
       response.data = response.data.sort((a, b) => ('' + a.attributes.chapter).localeCompare('' + b.attributes.chapter, undefined, { numeric: true, sensitivity: 'base' }));
       chapters.value = response
     });
-
-  invoke<string>("get_cover_art", { manga: manga.value, size: 'large' })
-    .then(response => cover.value = convertFileSrc(response));
 });
 </script>

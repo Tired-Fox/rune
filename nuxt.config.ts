@@ -7,6 +7,16 @@ export default defineNuxtConfig({
   colorMode: {
     classSuffix: '',
   },
+  tailwindcss: {
+    config: {
+      safelist: [
+        'hidden',
+        'w-0',
+        'h-0',
+        'overflow-hidden'
+      ]
+    }
+  },
   fontawesome: {
     component: 'fa',
     icons: {
