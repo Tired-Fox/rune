@@ -1,5 +1,5 @@
 <template>
-  <UIcon :name="`i-flag-${region}-4x3`" :title="regionName.length ? `${langName} (${regionName})` : langName" />
+  <Icon :name="`i-flag-${region}-4x3`" :title="regionName.length ? `${langName} (${regionName})` : langName" />
 </template>
 <script setup lang="ts">
 import { langToCountry } from '~/util/lang';

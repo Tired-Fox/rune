@@ -9,7 +9,7 @@
       :src="page"
       class="w-full h-auto"
     />
-    <USkeleton v-if="!pages.length" class="w-full h-full max-w-[800px] aspect-[2/3] rounded" />
+    <Skeleton v-if="!pages.length" class="w-full h-full max-w-[800px] aspect-[2/3] rounded" />
   </div>
 </template>
 

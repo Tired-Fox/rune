@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full w-full relative overflow-auto pb-14">
+  <div class="h-full w-full relative overflow-auto">
     <ReaderControls
       v-model:zoom="zoom"
       v-model:page="page"
@@ -89,6 +89,10 @@ whenever(logicAnd(ArrowRight, logicNot(strip)), next);
 whenever(logicAnd(ArrowLeft, logicNot(strip)), prev);
 whenever(logicAnd(HOME, logicNot(strip)), home)
 whenever(logicAnd(END, logicNot(strip)), end)
+
+definePageMeta({
+  layout: 'reader'
+});
 
 onMounted(() => {
   window.addEventListener('wheel', (event: any) => {

@@ -1,37 +1,41 @@
 <template>
-  <div class="w-full px-6">
+  <div class="w-full flex flex-col gap-4">
     <template
       v-for="[name, list] of Object.entries(lists).sort(([_1, a], [_2, b]) => ids.indexOf(a.id) - ids.indexOf(b.id))"
     >
-      <div class="px-6 pt-4 pb-8">
+      <div class="px-12">
         <h2 class="text-xl font-bold">{{ name }}</h2>
-        <UCarousel
-          v-slot="{ item: manga }"
-          :items="list.manga"
-          :ui="{ indicators: { wrapper: '-bottom-4' }}"
-          arrows
-          indicators
-        >
-          <div v-if="typeof manga === 'string'" class="px-2 py-1">
-            <USkeleton class="w-[15rem] aspect-[2/3] h-auto rounded" />
-          </div>
-          <nuxt-link
-            v-else
-            class="px-2 py-1 w-[15rem] relative flex flex-col items-start"
-            :to="`/manga/${manga.id}`"
-          >
-            <div
-              class="dark:bg-zinc-700 w-[14rem] aspect-[2/3] h-auto overflow-hidden rounded flex justify-center items-center"
+        <Carousel>
+          <CarouselContent class="-ml-4">
+            <CarouselItem
+              v-for="manga of list.manga"
+              :key="JSON.stringify(manga)"
+              class="sm:basis-1/2 md:basis-1/3 lg:basis-1/5 pl-4 max-w-[40ch]"
             >
-              <Cover
-                class="aspect-[2/3] h-auto w-full"
-                :source="{ mangaId: manga.id, fileName: manga.relationships.find((r: Relationship) => r.type === 'cover_art')?.attributes?.fileName }"
-                draggable="false"
-              />
-            </div>
-            <span class="line-clamp-3 text-ellipsis" :title="manga?.attributes.title.en">{{ manga?.attributes.title.en }}</span>
-          </nuxt-link>
-        </UCarousel>
+              <div v-if="typeof manga === 'string'" class="py-1">
+                <Skeleton class="w-full aspect-[2/3] h-auto rounded" />
+              </div>
+              <nuxt-link
+                v-else
+                class="py-1 w-full relative flex flex-col items-start"
+                :to="`/manga/${manga.id}`"
+              >
+                <div
+                  class="dark:bg-zinc-700 w-full aspect-[2/3] h-auto overflow-hidden rounded flex justify-center items-center"
+                >
+                  <Cover
+                    class="aspect-[2/3] h-auto w-full"
+                    :source="{ mangaId: manga.id, fileName: manga.relationships.find((r: Relationship) => r.type === 'cover_art')?.attributes?.fileName as any }"
+                    draggable="false"
+                  />
+                </div>
+                <span class="line-clamp-3 text-ellipsis" :title="manga?.attributes.title.en">{{ manga?.attributes.title.en }}</span>
+              </nuxt-link>
+            </CarouselItem>
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
       </div>
     </template>
   </div>
